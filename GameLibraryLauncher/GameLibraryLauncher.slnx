@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../AeroLauncher.Tests/AeroLauncher.Tests.csproj" Id="e7b685df-06ac-4277-b959-ed3974cd4f20" />
+  <Project Path="GameLibraryLauncher.csproj" />
+</Solution>

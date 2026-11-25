@@ -1,0 +1,14 @@
+# Build & IDE outputs
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Local publish & Velopack release artifacts
+publish/
+Releases/
+
+# OS files
+Thumbs.db
+.DS_Store

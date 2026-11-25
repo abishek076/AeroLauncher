@@ -1,0 +1,88 @@
+name: Aero Launcher CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-test:
+    name: Build & Run xUnit Tests
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore NuGet dependencies
+        run: dotnet restore
+
+      - name: Build solution (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run xUnit test suite
+        run: dotnet test AeroLauncher.Tests/AeroLauncher.Tests.csproj --configuration Release --no-build --verbosity normal
+
+  package-and-release:
+    name: Pack Velopack Installer & Publish GitHub Release
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Extract semantic version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $cleanVersion = $tag.TrimStart('v')
+          echo "value=$cleanVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Install Velopack CLI (vpk)
+        run: dotnet tool install -g vpk
+
+      - name: Publish self-contained win-x64 binary
+        run: >
+          dotnet publish GameLibraryLauncher/GameLibraryLauncher.csproj
+          -c Release
+          -r win-x64
+          --self-contained
+          -p:Version=${{ steps.version.outputs.value }}
+          -o ./publish
+
+      - name: Pack Velopack release (win-x64)
+        run: >
+          vpk pack
+          --packId AeroLauncher
+          --packVersion ${{ steps.version.outputs.value }}
+          --packDir ./publish
+          --mainExe AeroLauncher.exe
+          --packTitle "Aero Launcher"
+          --runtime win-x64
+          --icon GameLibraryLauncher/ico.ico
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Releases/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
