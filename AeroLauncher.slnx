@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AeroLauncher.Tests/AeroLauncher.Tests.csproj" />
+  <Project Path="GameLibraryLauncher/GameLibraryLauncher.csproj" />
+</Solution>

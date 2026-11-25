@@ -25,10 +25,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore NuGet dependencies
-        run: dotnet restore
+        run: dotnet restore AeroLauncher.slnx
 
       - name: Build solution (Release)
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build AeroLauncher.slnx --configuration Release --no-restore
 
       - name: Run xUnit test suite
         run: dotnet test AeroLauncher.Tests/AeroLauncher.Tests.csproj --configuration Release --no-build --verbosity normal
@@ -77,7 +77,6 @@ jobs:
           --mainExe AeroLauncher.exe
           --packTitle "Aero Launcher"
           --runtime win-x64
-          --icon GameLibraryLauncher/ico.ico
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
